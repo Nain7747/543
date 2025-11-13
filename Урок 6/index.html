@@ -3,15 +3,597 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Клавиатурный тренажер. Разработчик: Артемий Ясырев&copy;</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Клавиатурный тренажер QTE. Разработчик: Артемий Ясырев&copy;</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            overflow: hidden;
+        }
+
+        .game-container {
+            position: relative;
+            width: 90vw;
+            max-width: 900px;
+            height: 80vh;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .game-title {
+            font-size: 2.8rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            color: #fff;
+            background: linear-gradient(90deg, #ff8a00, #e52e71);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stats-container {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            margin-bottom: 2rem;
+        }
+
+        .score, .timer, .combo {
+            font-size: 2.2rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            text-align: center;
+            min-width: 220px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .score-value, .timer-value, .combo-value {
+            font-weight: bold;
+            color: #ffcc00;
+            text-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
+        }
+
+        .combo-value {
+            color: #00ffcc;
+        }
+
+        .game-area {
+            position: relative;
+            width: 100%;
+            height: 65%;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .qte-key {
+            position: absolute;
+            font-size: 5rem;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+            padding: 20px 35px;
+            border-radius: 15px;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-width: 120px;
+            transition: all 0.2s;
+            user-select: none;
+            z-index: 5;
+            opacity: 0;
+            transform: scale(0.8);
+            animation: keyAppear 0.3s forwards;
+        }
+
+        @keyframes keyAppear {
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .qte-key.correct {
+            background: linear-gradient(135deg, #00b09b, #96c93d);
+            transform: scale(1.1);
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.7);
+        }
+
+        .qte-key.incorrect {
+            background: linear-gradient(135deg, #ff416c, #ff4b2b);
+            transform: scale(0.9);
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.7);
+        }
+
+        .qte-key.fade-out {
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 0.3s;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .btn {
+            padding: 1.2rem 2.5rem;
+            font-size: 1.5rem;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .start-btn {
+            background: linear-gradient(135deg, #00b09b, #96c93d);
+            color: white;
+        }
+
+        .start-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .reset-btn {
+            background: linear-gradient(135deg, #ff416c, #ff4b2b);
+            color: white;
+        }
+
+        .reset-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .instructions {
+            margin-top: 1.5rem;
+            text-align: center;
+            font-size: 1.3rem;
+            color: rgba(255, 255, 255, 0.8);
+            max-width: 90%;
+            line-height: 1.5;
+        }
+
+        .keyboard-hint {
+            margin-top: 1rem;
+            font-size: 1.6rem;
+            color: #ffcc00;
+            text-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
+        }
+
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.95);
+            padding: 3rem 4rem;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 0 50px rgba(255, 255, 255, 0.3);
+            z-index: 10;
+            display: none;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .game-over h2 {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            color: #ffcc00;
+            text-shadow: 0 0 15px rgba(255, 204, 0, 0.7);
+        }
+
+        .final-score {
+            font-size: 2.8rem;
+            margin-bottom: 2rem;
+        }
+
+        .restart-btn {
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            color: white;
+            padding: 1.2rem 2.5rem;
+            font-size: 1.7rem;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .restart-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(106, 17, 203, 0.7);
+        }
+
+        .developer {
+            position: absolute;
+            bottom: 15px;
+            right: 25px;
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .combo-effect {
+            position: absolute;
+            font-size: 4rem;
+            font-weight: bold;
+            color: #00ffcc;
+            text-shadow: 0 0 20px rgba(0, 255, 204, 0.8);
+            z-index: 10;
+            opacity: 0;
+            transition: all 0.5s;
+        }
+
+        .qte-sequence {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            gap: 20px;
+            z-index: 2;
+        }
+
+        .sequence-key {
+            font-size: 4rem;
+            font-weight: bold;
+            color: rgba(255, 255, 255, 0.3);
+            padding: 15px 25px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s;
+        }
+
+        .sequence-key.active {
+            color: #fff;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            border-color: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 20px rgba(106, 17, 203, 0.7);
+            transform: scale(1.1);
+        }
+
+        .sequence-key.completed {
+            color: #00ff00;
+            background: linear-gradient(135deg, #00b09b, #96c93d);
+            border-color: rgba(0, 255, 0, 0.5);
+        }
+
+        @media (max-width: 768px) {
+            .game-container {
+                width: 95vw;
+                height: 85vh;
+                padding: 1rem;
+            }
+            
+            .game-title {
+                font-size: 2.2rem;
+            }
+            
+            .score, .timer, .combo {
+                font-size: 1.7rem;
+                min-width: 170px;
+                padding: 0.8rem 1.5rem;
+            }
+            
+            .qte-key {
+                font-size: 3.5rem;
+                min-width: 100px;
+                padding: 15px 25px;
+            }
+            
+            .sequence-key {
+                font-size: 2.5rem;
+                padding: 10px 15px;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="game-container">
-        <div class="falling-key" id="fallingKey"></div>
-        <div class="score">Очки: <span id="score">0</span></div>
-        <div class="timer">Осталось времени: <span id="timer">5</span> сек</div>
+        <h1 class="game-title">Клавиатурный тренажер QTE</h1>
+        
+        <div class="stats-container">
+            <div class="score">Очки: <span class="score-value" id="score">0</span></div>
+            <div class="timer">Время: <span class="timer-value" id="timer">30</span> сек</div>
+            <div class="combo">Комбо: <span class="combo-value" id="combo">0</span></div>
+        </div>
+        
+        <div class="game-area" id="gameArea">
+            <div class="qte-sequence" id="qteSequence">
+                <!-- Последовательность клавиш будет добавляться сюда -->
+            </div>
+        </div>
+        
+        <div class="keyboard-hint">Нажимайте клавиши в правильной последовательности!</div>
+        
+        <div class="controls">
+            <button class="btn start-btn" id="startBtn">Начать игру</button>
+            <button class="btn reset-btn" id="resetBtn">Сбросить</button>
+        </div>
+        
+        <div class="instructions">
+            Цель игры: нажимать клавиши в той последовательности, в которой они появляются.
+            За каждую правильную последовательность вы получаете очки. Комбо увеличивает множитель очков!
+        </div>
+        
+        <div class="game-over" id="gameOver">
+            <h2>Игра окончена!</h2>
+            <div class="final-score">Ваш счет: <span id="finalScore">0</span></div>
+            <button class="restart-btn" id="restartBtn">Играть снова</button>
+        </div>
+        
+        <div class="developer">Разработчик: Артемий Ясырев&copy;</div>
     </div>
-    <script src="script.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const gameArea = document.getElementById('gameArea');
+            const qteSequence = document.getElementById('qteSequence');
+            const scoreElement = document.getElementById('score');
+            const timerElement = document.getElementById('timer');
+            const comboElement = document.getElementById('combo');
+            const startBtn = document.getElementById('startBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const gameOverScreen = document.getElementById('gameOver');
+            const finalScoreElement = document.getElementById('finalScore');
+            const restartBtn = document.getElementById('restartBtn');
+            
+            let score = 0;
+            let timer = 30;
+            let combo = 0;
+            let gameActive = false;
+            let gameInterval;
+            let currentSequence = [];
+            let currentKeyIndex = 0;
+            let sequenceTimeout;
+            
+            // Доступные клавиши для игры
+            const availableKeys = 'ASDFGHJKL';
+            
+            // Создание последовательности клавиш
+            function createSequence() {
+                currentSequence = [];
+                currentKeyIndex = 0;
+                qteSequence.innerHTML = '';
+                
+                // Создаем последовательность из 3-5 клавиш
+                const sequenceLength = Math.floor(Math.random() * 3) + 3;
+                
+                for (let i = 0; i < sequenceLength; i++) {
+                    const randomIndex = Math.floor(Math.random() * availableKeys.length);
+                    const key = availableKeys[randomIndex];
+                    currentSequence.push(key);
+                    
+                    const sequenceKey = document.createElement('div');
+                    sequenceKey.className = 'sequence-key';
+                    sequenceKey.textContent = key;
+                    sequenceKey.dataset.key = key;
+                    sequenceKey.dataset.index = i;
+                    
+                    qteSequence.appendChild(sequenceKey);
+                }
+                
+                // Подсвечиваем первую клавишу
+                highlightCurrentKey();
+                
+                // Устанавливаем таймер на выполнение последовательности
+                clearTimeout(sequenceTimeout);
+                sequenceTimeout = setTimeout(() => {
+                    if (gameActive && currentKeyIndex < currentSequence.length) {
+                        failSequence();
+                    }
+                }, 3000 + (currentSequence.length * 500));
+            }
+            
+            // Подсветка текущей клавиши в последовательности
+            function highlightCurrentKey() {
+                const sequenceKeys = document.querySelectorAll('.sequence-key');
+                sequenceKeys.forEach((key, index) => {
+                    key.classList.remove('active', 'completed');
+                    if (index === currentKeyIndex) {
+                        key.classList.add('active');
+                    } else if (index < currentKeyIndex) {
+                        key.classList.add('completed');
+                    }
+                });
+            }
+            
+            // Обработчик нажатия клавиш
+            function handleKeyPress(e) {
+                if (!gameActive || currentSequence.length === 0) return;
+                
+                const pressedKey = e.key.toUpperCase();
+                
+                if (pressedKey === currentSequence[currentKeyIndex]) {
+                    // Правильная клавиша
+                    currentKeyIndex++;
+                    highlightCurrentKey();
+                    
+                    // Если последовательность завершена
+                    if (currentKeyIndex >= currentSequence.length) {
+                        completeSequence();
+                    }
+                } else {
+                    // Неправильная клавиша
+                    failSequence();
+                }
+            }
+            
+            // Успешное завершение последовательности
+            function completeSequence() {
+                combo++;
+                comboElement.textContent = combo;
+                
+                // Начисляем очки с учетом комбо
+                const basePoints = currentSequence.length * 10;
+                const comboBonus = combo * 5;
+                const points = basePoints + comboBonus;
+                
+                score += points;
+                scoreElement.textContent = score;
+                
+                // Создаем эффект успеха
+                createSuccessEffect();
+                
+                // Создаем новую последовательность через небольшую паузу
+                setTimeout(() => {
+                    if (gameActive) {
+                        createSequence();
+                    }
+                }, 800);
+            }
+            
+            // Неудачное завершение последовательности
+            function failSequence() {
+                combo = 0;
+                comboElement.textContent = combo;
+                
+                // Подсвечиваем последовательность красным
+                const sequenceKeys = document.querySelectorAll('.sequence-key');
+                sequenceKeys.forEach(key => {
+                    key.style.background = 'linear-gradient(135deg, #ff416c, #ff4b2b)';
+                });
+                
+                // Создаем новую последовательность через паузу
+                setTimeout(() => {
+                    if (gameActive) {
+                        createSequence();
+                    }
+                }, 1000);
+            }
+            
+            // Создание эффекта успеха
+            function createSuccessEffect() {
+                const effect = document.createElement('div');
+                effect.className = 'combo-effect';
+                effect.textContent = `+${combo > 1 ? 'COMBO x' + combo + '!' : 'УСПЕХ!'}`;
+                effect.style.left = '50%';
+                effect.style.top = '30%';
+                
+                gameArea.appendChild(effect);
+                
+                // Анимация эффекта
+                setTimeout(() => {
+                    effect.style.opacity = '1';
+                    effect.style.transform = 'translate(-50%, -50px) scale(1.2)';
+                    
+                    setTimeout(() => {
+                        effect.style.opacity = '0';
+                        effect.style.transform = 'translate(-50%, -100px) scale(0.5)';
+                        
+                        setTimeout(() => {
+                            if (effect.parentNode) {
+                                effect.parentNode.removeChild(effect);
+                            }
+                        }, 500);
+                    }, 1000);
+                }, 10);
+            }
+            
+            // Запуск игры
+            function startGame() {
+                if (gameActive) return;
+                
+                gameActive = true;
+                score = 0;
+                timer = 30;
+                combo = 0;
+                
+                scoreElement.textContent = score;
+                timerElement.textContent = timer;
+                comboElement.textContent = combo;
+                
+                gameOverScreen.style.display = 'none';
+                
+                // Создаем первую последовательность
+                createSequence();
+                
+                // Таймер игры
+                gameInterval = setInterval(() => {
+                    if (gameActive) {
+                        timer--;
+                        timerElement.textContent = timer;
+                        
+                        if (timer <= 0) {
+                            endGame();
+                        }
+                    }
+                }, 1000);
+                
+                // Добавляем обработчик клавиш
+                document.addEventListener('keydown', handleKeyPress);
+            }
+            
+            // Завершение игры
+            function endGame() {
+                gameActive = false;
+                clearInterval(gameInterval);
+                clearTimeout(sequenceTimeout);
+                
+                finalScoreElement.textContent = score;
+                gameOverScreen.style.display = 'block';
+                
+                // Удаляем обработчик клавиш
+                document.removeEventListener('keydown', handleKeyPress);
+            }
+            
+            // Сброс игры
+            function resetGame() {
+                gameActive = false;
+                clearInterval(gameInterval);
+                clearTimeout(sequenceTimeout);
+                
+                score = 0;
+                timer = 30;
+                combo = 0;
+                
+                scoreElement.textContent = score;
+                timerElement.textContent = timer;
+                comboElement.textContent = combo;
+                
+                // Очищаем последовательность
+                qteSequence.innerHTML = '';
+                currentSequence = [];
+                currentKeyIndex = 0;
+                
+                gameOverScreen.style.display = 'none';
+                
+                // Удаляем обработчик клавиш
+                document.removeEventListener('keydown', handleKeyPress);
+            }
+            
+            // Обработчики событий
+            startBtn.addEventListener('click', startGame);
+            resetBtn.addEventListener('click', resetGame);
+            restartBtn.addEventListener('click', startGame);
+        });
+    </script>
 </body>
 </html>
